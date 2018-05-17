@@ -12,38 +12,49 @@
         <div class="small-6 columns">
             <h1 class="text-center">YOU</h1>
             <div class="healthbar">
-                <div class="healthbar text-center" style="background-color: green; margin: 0; color: white;">
-
+                <div :style="{width: playerHP + '%'}" class="healthbar text-center" style="background-color: green; margin: 0; color: white;">
+                    {{ playerHP }}
                 </div>
             </div>
         </div>
         <div class="small-6 columns">
             <h1 class="text-center">MONSTER</h1>
             <div class="healthbar">
-                <div class="healthbar text-center" style="background-color: green; margin: 0; color: white;">
-
+                <div :style="{width: monsterHP + '%'}" class="healthbar text-center" style="background-color: green; margin: 0; color: white;">
+                    {{ monsterHP }}
                 </div>
             </div>
         </div>
     </section>
+    <!-- Start Button -->
     <section v-if="gameStart" class="row controls">
         <div class="small-12 columns">
             <button @click="startGame" id="start-game">START NEW GAME</button>
         </div>
     </section>
+    <!-- Controls Buttons -->
     <section v-else class="row controls">
         <div class="small-12 columns">
-            <button id="attack">ATTACK</button>
-            <button id="special-attack">SPECIAL ATTACK</button>
-            <button id="heal">HEAL</button>
+            <button @click="attack()" id="attack">ATTACK</button>
+            <button @click="specialAttack()" id="special-attack">SPECIAL ATTACK</button>
+            <button @click="heal()" id="heal">HEAL</button>
             <button @click="endGame" id="give-up">GIVE UP</button>
         </div>
     </section>
-    <section class="row log">
+    <!-- Feedback -->
+    <section v-if="!gameStart && events != ''" class="row log">
         <div class="small-12 columns">
             <ul>
-                <li>
-
+                <!--li v-for="event in events">
+                    <p :class="event.user == 'monster' ? 'monster-turn' : 'player-turn'">{{ event.movemant }}</p>
+                </li-->
+                <li v-for="event in events.reverse()">
+                    <p v-if="event.user != 'heal'" :class="event.user == 'monster' ? 'monster-turn' : 'player-turn'">
+                        Hit {{event.user}} with {{event.damage}} points of damage!
+                    </p>
+                    <p v-else class="player-turn">
+                        Player heals with {{event.damage}}
+                    </p>
                 </li>
             </ul>
         </div>
@@ -53,16 +64,72 @@
     new Vue({
         el:'#app',
         data:{
-            gameStart: true
+            gameStart: true,
+            playerHP: 80,
+            monsterHP: 80,
+            events:[],
         },
         methods:{
             startGame(){
                 const vm = this;
                 vm.gameStart = !vm.gameStart;
+                vm.playerHP = 100;
+                vm.monsterHP = 100
+            },
+            attack(){
+                const vm = this;
+                let monsterHIT = Math.floor((Math.random()*10) + 1);
+                let playerHIT  = Math.floor((Math.random()*10) + 1);
+                vm.playerHP     -= monsterHIT;
+                vm.monsterHP    -= playerHIT;
+                vm.events.push(
+                    {
+                        user:'player',
+                        damage: monsterHIT
+                    },
+                    {
+                        user:'monster',
+                        damage: playerHIT
+                    })
+            },
+            specialAttack(){
+                const vm = this;
+                let monsterHIT = Math.floor((Math.random()*10) + 1);
+                let playerHIT  = Math.floor((Math.random()*20) + 1);
+                vm.playerHP     -= monsterHIT;
+                vm.monsterHP    -= playerHIT;
+                vm.events.push(
+                    {
+                        user:'player',
+                        damage: monsterHIT
+                    },
+                    {
+                        user:'monster',
+                        damage: playerHIT
+                    })
+            },
+            heal(){
+                const vm = this;
+                let monsterHIT = Math.floor((Math.random()*10) + 1);
+                let playerHIT  = Math.floor((Math.random()*10) + 1);
+                vm.playerHP    += monsterHIT;
+                vm.playerHP    -= playerHIT;
+                vm.events.push(
+                    {
+                        user:'heal',
+                        damage: playerHIT
+                    },
+                    {
+                        user:'monster',
+                        damage: monsterHIT
+                    })
             },
             endGame(){
                 const vm = this;
                 vm.gameStart = !vm.gameStart;
+                vm.playerHP = 80;
+                vm.monsterHP = 80;
+                vm.events = []
             }
         }
     })
