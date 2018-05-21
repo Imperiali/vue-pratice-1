@@ -48,12 +48,12 @@
                 <!--li v-for="event in events">
                     <p :class="event.user == 'monster' ? 'monster-turn' : 'player-turn'">{{ event.movemant }}</p>
                 </li-->
-                <li v-for="event in events.reverse()">
-                    <p v-if="event.user != 'heal'" :class="event.user == 'monster' ? 'monster-turn' : 'player-turn'">
-                        Hit {{event.user}} with {{event.damage}} points of damage!
+                <li v-for="(event, i) in events" :key="i">
+                    <p v-if="event.target != ''" :class="event.user == 'monster' ? 'monster-turn' : 'player-turn'">
+                        {{event.user}} hit {{event.target}} with {{event.damage}} points of damage! {{i}}
                     </p>
                     <p v-else class="player-turn">
-                        Player heals with {{event.damage}}
+                        Player heals himself with {{event.damage}}
                     </p>
                 </li>
             </ul>
@@ -69,6 +69,24 @@
             monsterHP: 80,
             events:[],
         },
+        watch:{
+          playerHP(value){
+              let vm = this;
+              if(value <= 0){
+                  if(confirm('You lose!\nTry again?')){
+                      vm.endGame();
+                  }
+              }
+          },
+            monsterHP(value){
+                let vm = this;
+                if(value <= 0){
+                    if(confirm('You win!\nTry again?')){
+                        vm.endGame();
+                    }
+                }
+            }
+        },
         methods:{
             startGame(){
                 const vm = this;
@@ -76,52 +94,48 @@
                 vm.playerHP = 100;
                 vm.monsterHP = 100
             },
-            attack(){
+            turn(playerHit, monsterHit){
                 const vm = this;
-                let monsterHIT = Math.floor((Math.random()*10) + 1);
-                let playerHIT  = Math.floor((Math.random()*10) + 1);
-                vm.playerHP     -= monsterHIT;
-                vm.monsterHP    -= playerHIT;
+                let monsterDamage = Math.floor((Math.random()* monsterHit) + 1);
+                let playerDamage = Math.floor((Math.random()* playerHit) + 1);
+                vm.playerHP     -= monsterDamage;
+                vm.monsterHP    -= playerDamage;
                 vm.events.push(
                     {
                         user:'player',
-                        damage: monsterHIT
+                        target: 'monster',
+                        damage: playerDamage
                     },
                     {
                         user:'monster',
-                        damage: playerHIT
-                    })
+                        target: 'player',
+                        damage: monsterDamage
+                    });
+            },
+            attack(){
+                let vm = this;
+                vm.turn(10, 10);
             },
             specialAttack(){
-                const vm = this;
-                let monsterHIT = Math.floor((Math.random()*10) + 1);
-                let playerHIT  = Math.floor((Math.random()*20) + 1);
-                vm.playerHP     -= monsterHIT;
-                vm.monsterHP    -= playerHIT;
-                vm.events.push(
-                    {
-                        user:'player',
-                        damage: monsterHIT
-                    },
-                    {
-                        user:'monster',
-                        damage: playerHIT
-                    })
+                let vm = this;
+                vm.turn(20, 10);
             },
             heal(){
                 const vm = this;
-                let monsterHIT = Math.floor((Math.random()*10) + 1);
-                let playerHIT  = Math.floor((Math.random()*10) + 1);
-                vm.playerHP    += monsterHIT;
-                vm.playerHP    -= playerHIT;
+                let monsterDamage = Math.floor((Math.random()*10) + 1);
+                let playerDamage  = Math.floor((Math.random()*10) + 1);
+                vm.playerHP    += monsterDamage;
+                vm.playerHP    -= playerDamage;
                 vm.events.push(
                     {
                         user:'heal',
-                        damage: playerHIT
+                        target: '',
+                        damage: playerDamage
                     },
                     {
                         user:'monster',
-                        damage: monsterHIT
+                        target: 'player',
+                        damage: monsterDamage
                     })
             },
             endGame(){
