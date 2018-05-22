@@ -42,18 +42,15 @@
         </div>
     </section>
     <!-- Feedback -->
-    <section v-if="!gameStart && events != ''" class="row log">
+    <section v-if="events.length > 0" class="row log">
         <div class="small-12 columns">
             <ul>
                 <!--li v-for="event in events">
                     <p :class="event.user == 'monster' ? 'monster-turn' : 'player-turn'">{{ event.movemant }}</p>
                 </li-->
                 <li v-for="(event, i) in events" :key="i">
-                    <p v-if="event.target != ''" :class="event.user == 'monster' ? 'monster-turn' : 'player-turn'">
-                        {{event.user}} hit {{event.target}} with {{event.damage}} points of damage! {{i}}
-                    </p>
-                    <p v-else class="player-turn">
-                        Player heals himself with {{event.damage}}
+                    <p :class="!event.isPlayer ? 'monster-turn' : 'player-turn'">
+                        {{event.text}}
                     </p>
                 </li>
             </ul>
@@ -93,45 +90,46 @@
                 this.playerHP = 100;
                 this.monsterHP = 100
             },
-            turn(playerHit, monsterHit){
-                let monsterDamage = Math.floor((Math.random()* monsterHit) + 1);
-                let playerDamage = Math.floor((Math.random()* playerHit) + 1);
-                this.playerHP     -= monsterDamage;
+            calculateDamage(max, min){
+                return Math.max(Math.floor(Math.random()* max) + 1, min);
+            },
+            monsterTurn(){
+                let monsterDamage = this.calculateDamage(15, 5);
+                this.playerHP -= monsterDamage;
+                this.events.unshift({
+                    isPlayer: false,
+                    text: 'Monster hist Player with ' + monsterDamage
+                })
+            },
+            turn(maxPlayerHit, minPlayerHit, text){
+                let playerDamage = this.calculateDamage(maxPlayerHit, minPlayerHit);
                 this.monsterHP    -= playerDamage;
-                this.events.push(
+                this.events.unshift(
                     {
-                        user:'player',
-                        target: 'monster',
-                        damage: playerDamage
-                    },
-                    {
-                        user:'monster',
-                        target: 'player',
-                        damage: monsterDamage
-                    });
+                        isPlayer: true,
+                        text: text + playerDamage
+                    })
             },
             attack(){
-                this.turn(10, 10);
+                this.turn(10, 3, 'Player hit monster with ');
+                this.monsterTurn();
             },
             specialAttack(){
-                this.turn(20, 10);
+                this.turn(20, 5, 'Player hit monster harder with ');
+                this.monsterTurn();
             },
             heal(){
-                let monsterDamage = Math.floor((Math.random()*10) + 1);
-                let playerDamage  = Math.floor((Math.random()*10) + 1);
-                this.playerHP    += monsterDamage;
-                this.playerHP    -= playerDamage;
-                this.events.push(
+                if(this.playerHP <= 100){
+                    this.playerHP += 10;
+                }else {
+                    this.playerHP = 100;
+                }
+                this.events.unshift(
                     {
-                        user:'heal',
-                        target: '',
-                        damage: playerDamage
-                    },
-                    {
-                        user:'monster',
-                        target: 'player',
-                        damage: monsterDamage
-                    })
+                        isPlayer: true,
+                        text: 'Player heals himself with 10'
+                    });
+                this.monsterTurn();
             },
             endGame(){
                 this.gameStart = !this.gameStart;
