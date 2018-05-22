@@ -89,18 +89,16 @@
         },
         methods:{
             startGame(){
-                const vm = this;
-                vm.gameStart = !vm.gameStart;
-                vm.playerHP = 100;
-                vm.monsterHP = 100
+                this.gameStart = !this.gameStart;
+                this.playerHP = 100;
+                this.monsterHP = 100
             },
             turn(playerHit, monsterHit){
-                const vm = this;
                 let monsterDamage = Math.floor((Math.random()* monsterHit) + 1);
                 let playerDamage = Math.floor((Math.random()* playerHit) + 1);
-                vm.playerHP     -= monsterDamage;
-                vm.monsterHP    -= playerDamage;
-                vm.events.push(
+                this.playerHP     -= monsterDamage;
+                this.monsterHP    -= playerDamage;
+                this.events.push(
                     {
                         user:'player',
                         target: 'monster',
@@ -113,20 +111,17 @@
                     });
             },
             attack(){
-                let vm = this;
-                vm.turn(10, 10);
+                this.turn(10, 10);
             },
             specialAttack(){
-                let vm = this;
-                vm.turn(20, 10);
+                this.turn(20, 10);
             },
             heal(){
-                const vm = this;
                 let monsterDamage = Math.floor((Math.random()*10) + 1);
                 let playerDamage  = Math.floor((Math.random()*10) + 1);
-                vm.playerHP    += monsterDamage;
-                vm.playerHP    -= playerDamage;
-                vm.events.push(
+                this.playerHP    += monsterDamage;
+                this.playerHP    -= playerDamage;
+                this.events.push(
                     {
                         user:'heal',
                         target: '',
@@ -139,11 +134,10 @@
                     })
             },
             endGame(){
-                const vm = this;
-                vm.gameStart = !vm.gameStart;
-                vm.playerHP = 80;
-                vm.monsterHP = 80;
-                vm.events = []
+                this.gameStart = !this.gameStart;
+                this.playerHP = 80;
+                this.monsterHP = 80;
+                this.events = [];
             }
         }
     })
